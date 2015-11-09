@@ -14,7 +14,18 @@ var
     less = require('gulp-less'),
     concat = require('gulp-concat'),
     minifyCSS = require('gulp-minify-css'),
+    mainBowerFiles = require('main-bower-files'),
     browserSync = require('browser-sync').create();
+
+/*
+    Task for get all installed bower dependencies.
+    Concat them into single file and connect to the index.html template
+*/
+
+gulp.task('bower', function () {
+    gulp.src(mainBowerFiles())
+        .pipe(gulp.dest('dist/lib'))
+})
 
 
 /*
@@ -51,12 +62,13 @@ gulp.task('build-styles', function () {
     Run live reload local web server.
     Do not touch this, please. Only if you know what you do :)
 */
-gulp.task('serve', function() {
+gulp.task('serve', function () {
     browserSync.init({
         server: {
             baseDir: './'
         }
     });
+    gulp.watch('bower_components/**', ['bower']); // Watch changes in bower assets and compile new common file.
     gulp.watch('styles/sass/**/*.scss', ['build-styles']);
     gulp.watch('styles/less/**/*.less', ['build-styles']);
     gulp.watch('*.html').on('change', browserSync.reload);
@@ -66,7 +78,7 @@ gulp.task('serve', function() {
     Watch task. Running web server and watching for changes in local files.
     Compile changes and reload your browser with updates.
 */
-gulp.task('watch', ['build-styles' 'serve']);
+gulp.task('watch', ['bower', 'build-styles', 'serve']);
 
 /*
     Build task. Only compiles styles.
