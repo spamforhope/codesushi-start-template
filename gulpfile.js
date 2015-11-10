@@ -1,13 +1,15 @@
 /*
     Gulp configuration file
     ----------------------------
-    run 'gulp watch' - to run local server with live reload;
-    run 'gulp build' - to compile styles without running web server;
+    run 'gulp watch' - to compile all assets and run local server with live reload;
+    run 'gulp build' - to compile styles and bower dependencies;
 */
 
 'use strict';
 
 var
+    useSASS = true,
+    useLESS = false,
     gulp = require('gulp'),
     autoprefixer = require('gulp-autoprefixer'),
     sass = require('gulp-sass'),
@@ -15,37 +17,38 @@ var
     concat = require('gulp-concat'),
     minifyCSS = require('gulp-minify-css'),
     mainBowerFiles = require('main-bower-files'),
+    uglify = require('gulp-uglify'),
     browserSync = require('browser-sync').create();
 
 /*
     Task for get all installed bower dependencies.
-    Concat them into single file and connect to the index.html template
+    Concat them into single minified file.
 */
-
 gulp.task('bower', function () {
-    gulp.src(mainBowerFiles())
-        .pipe(gulp.dest('dist/lib'))
+    gulp.src(mainBowerFiles({ filter: new RegExp('.*js$', 'i') }))
+        .pipe(concat('vendor.js'))
+        .pipe(uglify())
+        .pipe(gulp.dest('dist/js/lib'))
 })
-
 
 /*
     Compile task for styles SASS or LESS
     Uncomment LESS or SASS method (depends on your choice)
 */
 gulp.task('build-styles', function () {
-    // SASS Method (uncomment lines below for using)
-    /*
-    gulp.src('styles/sass/main.scss') //change file name here if you're using other than main.scss
-        .pipe(sass().on('error', sass.logError))
-        .pipe(gulp.dest('styles/css'));
-    */
+    // Check what preprocessor is using
 
-    // LESS Method (uncomment lines below for using)
-    /*
-    gulp.src('styles/less/main.less') //change file name here if you're using other than main.less
-        .pipe(less())
-        .pipe(gulp.dest('styles/css'));
-    */
+    if (useSASS) {
+        // SASS Method
+        gulp.src('styles/sass/main.scss') //change file name here if you're using other than main.scss
+            .pipe(sass().on('error', sass.logError))
+            .pipe(gulp.dest('styles/css'));
+    } else if (useLESS) {
+        // LESS Method
+        gulp.src('styles/less/main.less') //change file name here if you're using other than main.less
+            .pipe(less())
+            .pipe(gulp.dest('styles/css'));
+    }
 
     // Autoprefixer save compiled file into /dist/css/ folder
     // Include *.css to your html only from that folder.
@@ -81,6 +84,7 @@ gulp.task('serve', function () {
 gulp.task('watch', ['bower', 'build-styles', 'serve']);
 
 /*
-    Build task. Only compiles styles.
+    Build task.
+    Compile styles and bower libraries.
 */
-gulp.task('build', ['build-styles']);
+gulp.task('build', ['bower','build-styles']);
