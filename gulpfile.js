@@ -8,7 +8,7 @@
 'use strict';
 
 var
-    useSASS = true,
+    useSASS = false,
     useLESS = false,
     gulp = require('gulp'),
     autoprefixer = require('gulp-autoprefixer'),
